@@ -3,8 +3,11 @@ import { Heading } from '@/components/catalyst-ui-kit/heading';
 import { Input, InputGroup } from '@/components/catalyst-ui-kit/input';
 import { Select } from '@/components/catalyst-ui-kit/select';
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
+import { useContext } from 'react';
+import UserAccount from '../context/UserAccount';
 
 export default function SortBar() {
+  const { loggedUser } = useContext(UserAccount);
   return (
     <div className='flex flex-wrap items-end justify-between gap-4'>
       <div className='max-sm:w-full sm:flex-1'>
@@ -29,7 +32,7 @@ export default function SortBar() {
           </div>
         </div>
       </div>
-      <Button>Create article</Button>
+      {loggedUser && <Button>Create article</Button>}
     </div>
   );
 }

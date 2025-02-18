@@ -7,9 +7,8 @@ import {
 
 const navItems = [
   { label: 'Home', url: '/' },
-  { label: 'Events', url: '/events' },
-  { label: 'Orders', url: '/orders' },
-  { label: 'Broadcasts', url: '/broadcasts' },
+  { label: 'Topics', url: '/topics' },
+  { label: 'Profile', url: '/my-profile' },
 ];
 
 export default function SideNavBar() {
