@@ -1,35 +1,20 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useContext, useEffect, useState } from 'react';
+import UserAccount from './context/UserAccount';
+import { fetchArticles } from './services/api';
+import { StackedLayout } from '@/components/catalyst-ui-kit/stacked-layout';
+import HeaderNavBar from './components/HeaderNavBar';
+import SideNavBar from './components/SideNavBar';
+import AppRouter from './router/AppRouter';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { loggedUser } = useContext(UserAccount);
+  const [count, setCount] = useState(0);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <StackedLayout navbar={<HeaderNavBar />} sidebar={<SideNavBar />}>
+      <AppRouter />
+    </StackedLayout>
+  );
 }
 
-export default App
+export default App;
