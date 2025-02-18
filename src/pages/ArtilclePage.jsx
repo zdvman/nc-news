@@ -1,3 +1,3 @@
-export default function ArtilclePage() {
+export default function ArticlePage() {
   return;
 }

@@ -24,18 +24,8 @@ import {
 import { useContext } from 'react';
 import UserAccount from '../context/UserAccount';
 
-{
-  /* <Routes>
-      <Route path='/' element={<HomePage />} />
-      <Route path='/articles/:article_id' element={<ArtilclePage />} />
-      <Route path='/profile' element={<UserProfilePage />} />
-      <Route path='*' element={<NotFoundPage />} />
-    </Routes> */
-}
-
 const navItems = [
   { label: 'Home', url: '/' },
-  { label: 'Articles', url: '/articles' },
   { label: 'Topics', url: '/topics' },
   { label: 'Profile', url: '/my-profile' },
 ];
