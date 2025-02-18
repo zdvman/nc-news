@@ -7,12 +7,13 @@ import {
   DropdownMenu,
 } from '@/components/catalyst-ui-kit/dropdown';
 import { Link } from '@/components/catalyst-ui-kit/link';
-import { EllipsisVerticalIcon } from '@heroicons/react/16/solid';
+import { EllipsisVerticalIcon, StarIcon } from '@heroicons/react/16/solid';
 import { fetchArticles } from '../services/api';
 import { Subheading } from '@/components/catalyst-ui-kit/heading';
 import { useContext, useEffect, useState } from 'react';
 import UserAccount from '../context/UserAccount';
 import { formatDate } from '../utils/utils';
+import Loading from './Loading';
 
 export default function ArticlesList() {
   const [articles, setArticles] = useState(null);
@@ -25,7 +26,7 @@ export default function ArticlesList() {
   }, []);
 
   if (!articles) {
-    return <p>Loading...</p>;
+    return <Loading />;
   }
 
   return (
@@ -69,8 +70,12 @@ export default function ArticlesList() {
               </div>
             </div>
             <div className='flex items-center gap-4'>
-              <Badge className='max-sm:hidden' color={'lime'}>
-                votes: {article.votes}
+              <Badge
+                className='min-w-[50px] max-sm:hidden'
+                color={`${article.votes > 0 ? 'lime' : 'zinc'}`}
+              >
+                <StarIcon className='w-4 h-4' />
+                {article.votes}
               </Badge>
               <Dropdown>
                 <DropdownButton plain aria-label='More options'>
