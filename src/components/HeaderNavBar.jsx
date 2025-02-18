@@ -18,6 +18,8 @@ import {
 import {
   ArrowLeftStartOnRectangleIcon,
   ArrowRightStartOnRectangleIcon,
+  CheckBadgeIcon,
+  NoSymbolIcon,
   PlusCircleIcon,
   UserIcon,
 } from '@heroicons/react/16/solid';
@@ -35,6 +37,13 @@ export default function HeaderNavBar() {
 
   const LoggedInMenu = () => (
     <>
+      <DropdownItem>
+        <CheckBadgeIcon />
+        <DropdownLabel>
+          You {loggedUser?.name && `are authorised as ${loggedUser.name}`}
+        </DropdownLabel>
+      </DropdownItem>
+      <NavbarSpacer />
       <DropdownItem href='/my-profile'>
         <UserIcon />
         <DropdownLabel>My Profile</DropdownLabel>
@@ -52,10 +61,17 @@ export default function HeaderNavBar() {
   );
 
   const LoggedOutMenu = () => (
-    <DropdownItem href='/signin'>
-      <ArrowLeftStartOnRectangleIcon />
-      <DropdownLabel>Sign in</DropdownLabel>
-    </DropdownItem>
+    <>
+      <DropdownItem>
+        <NoSymbolIcon />
+        <DropdownLabel>You are not authorised</DropdownLabel>
+      </DropdownItem>
+      <NavbarSpacer />
+      <DropdownItem href='/signin'>
+        <ArrowLeftStartOnRectangleIcon />
+        <DropdownLabel>Sign in</DropdownLabel>
+      </DropdownItem>
+    </>
   );
 
   return (

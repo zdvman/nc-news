@@ -10,10 +10,13 @@ import { Link } from '@/components/catalyst-ui-kit/link';
 import { EllipsisVerticalIcon } from '@heroicons/react/16/solid';
 import { fetchArticles } from '../services/api';
 import { Subheading } from '@/components/catalyst-ui-kit/heading';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import UserAccount from '../context/UserAccount';
+import { formatDate } from '../utils/utils';
 
 export default function ArticlesList() {
-  const [articles, setArticles] = useState([]);
+  const [articles, setArticles] = useState(null);
+  const { loggedUser } = useContext(UserAccount);
 
   useEffect(() => {
     fetchArticles().then((fetchedArticles) => {
@@ -21,9 +24,9 @@ export default function ArticlesList() {
     });
   }, []);
 
-  const formatDate = (isoString) => {
-    return new Date(isoString).toLocaleString();
-  };
+  if (!articles) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <ul className='mt-10'>
@@ -45,14 +48,17 @@ export default function ArticlesList() {
                 </Link>
               </div>
               <div className='space-y-1.5'>
-                <Subheading>
-                  {article.topic[0].toUpperCase() + article.topic.slice(1)}
-                </Subheading>
                 <div className='text-base/6 font-semibold text-white'>
                   <Link href={`/articles/${article.article_id}`}>
                     {article.title}
                   </Link>
                 </div>
+                <Subheading>
+                  Topic:
+                  {` "${
+                    article.topic[0].toUpperCase() + article.topic.slice(1)
+                  }"`}
+                </Subheading>
                 <div className='text-xs/6 text-zinc-500'>
                   created by {article.author} at{' '}
                   {formatDate(article.created_at)}{' '}
@@ -71,9 +77,15 @@ export default function ArticlesList() {
                   <EllipsisVerticalIcon />
                 </DropdownButton>
                 <DropdownMenu anchor='bottom end'>
-                  <DropdownItem href={article.url}>View</DropdownItem>
-                  <DropdownItem>Edit</DropdownItem>
-                  <DropdownItem>Delete</DropdownItem>
+                  <DropdownItem href={`/articles/${article.article_id}`}>
+                    View
+                  </DropdownItem>
+                  {loggedUser?.username === article.author && (
+                    <>
+                      <DropdownItem>Edit</DropdownItem>
+                      <DropdownItem>Delete</DropdownItem>
+                    </>
+                  )}
                 </DropdownMenu>
               </Dropdown>
             </div>
