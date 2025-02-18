@@ -32,7 +32,18 @@ export default function SortBar() {
           </div>
         </div>
       </div>
-      {loggedUser && <Button>Create article</Button>}
+      {loggedUser ? (
+        <Button className='px-8 mt-6 w-full sm:w-auto min-w-[200px]'>
+          Create article
+        </Button>
+      ) : (
+        <Button
+          href='/profile'
+          className='px-8 mt-6 w-full sm:w-auto min-w-[200px]'
+        >
+          Sign in to create an article
+        </Button>
+      )}
     </div>
   );
 }

@@ -19,3 +19,10 @@ export const fetchArticle = (article_id) => {
     return response.data.article;
   });
 };
+
+// Fetch comments associated with an article
+export const fetchCommentsByArticle = (article_id) => {
+  return ncNewsAPI.get(`/articles/${article_id}/comments`).then((response) => {
+    return response.data.comments;
+  });
+};
