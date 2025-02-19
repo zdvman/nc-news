@@ -10,7 +10,7 @@ import { Badge } from '@/components/catalyst-ui-kit/badge';
 import { useEffect, useState } from 'react';
 import { formatDate } from '../utils/utils';
 import { Text } from '@/components/catalyst-ui-kit/text';
-import { fetchVoteOnArticle } from '../services/api';
+import { patchVotesOnArticle } from '../services/api';
 
 export default function ArticleDetailedCard({ article }) {
   const [voteStatus, setVoteStatus] = useState(() => {
@@ -43,7 +43,7 @@ export default function ArticleDetailedCard({ article }) {
   // API Call using useEffect to sync state with backend
   useEffect(() => {
     if (pendingVote !== null) {
-      fetchVoteOnArticle(article.article_id, pendingVote)
+      patchVotesOnArticle(article.article_id, pendingVote)
         .then((updatedArticle) => {
           setVotes(updatedArticle.votes); // Sync with backend
         })
