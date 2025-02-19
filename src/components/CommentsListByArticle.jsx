@@ -29,15 +29,9 @@ import { formatDate } from '../utils/utils';
 import { Link } from 'react-router-dom';
 import { EllipsisVerticalIcon, StarIcon } from '@heroicons/react/16/solid';
 
-export default function CommentsListByArticle({ article_id }) {
-  const [comments, setComments] = useState(null);
+export default function CommentsListByArticle({ comments }) {
   const { loggedUser } = useContext(UserAccount);
-  useEffect(() => {
-    fetchCommentsByArticle(article_id).then((fetchedComments) => {
-      setComments(fetchedComments);
-      console.log(fetchedComments);
-    });
-  }, [article_id]);
+  useEffect(() => {}, []);
 
   if (!comments) {
     return <Loading />;

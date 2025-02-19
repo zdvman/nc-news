@@ -26,3 +26,12 @@ export const fetchCommentsByArticle = (article_id) => {
     return response.data.comments;
   });
 };
+
+// Update vote article
+export const fetchVoteOnArticle = (article_id, votes) => {
+  return ncNewsAPI
+    .patch(`/articles/${article_id}`, { inc_votes: votes })
+    .then((response) => {
+      return response.data.article;
+    });
+};
