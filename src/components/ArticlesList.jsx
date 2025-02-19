@@ -8,7 +8,7 @@ import {
 } from '@/components/catalyst-ui-kit/dropdown';
 import { Link } from '@/components/catalyst-ui-kit/link';
 import { EllipsisVerticalIcon, StarIcon } from '@heroicons/react/16/solid';
-import { fetchArticles } from '../services/api';
+import { getArticles } from '../services/api';
 import { Subheading } from '@/components/catalyst-ui-kit/heading';
 import { useContext, useEffect, useState } from 'react';
 import UserAccount from '../context/UserAccount';
@@ -20,9 +20,13 @@ export default function ArticlesList() {
   const { loggedUser } = useContext(UserAccount);
 
   useEffect(() => {
-    fetchArticles().then((fetchedArticles) => {
-      setArticles(fetchedArticles);
-    });
+    getArticles()
+      .then((fetchedArticles) => {
+        setArticles(fetchedArticles);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }, []);
 
   if (!articles) {

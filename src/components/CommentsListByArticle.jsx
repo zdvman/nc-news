@@ -1,11 +1,8 @@
 import { useContext, useEffect, useState } from 'react';
-import Loading from './Loading';
-import { fetchCommentsByArticle } from '../services/api';
 
-import { HeartIcon } from '@heroicons/react/24/solid';
 import UserAccount from '../context/UserAccount';
 import { Button } from './catalyst-ui-kit/button';
-import { Heading, Subheading } from './catalyst-ui-kit/heading';
+import { Heading } from './catalyst-ui-kit/heading';
 import { Divider } from './catalyst-ui-kit/divider';
 import { Badge } from './catalyst-ui-kit/badge';
 import {
@@ -21,21 +18,43 @@ import {
   FieldGroup,
   Fieldset,
   Label,
-  Legend,
 } from '@/components/catalyst-ui-kit/fieldset';
 import { Text } from '@/components/catalyst-ui-kit/text';
 import { Textarea } from '@/components/catalyst-ui-kit/textarea';
 import { formatDate } from '../utils/utils';
 import { Link } from 'react-router-dom';
 import { EllipsisVerticalIcon, StarIcon } from '@heroicons/react/16/solid';
+import { postCommentOnArticle } from '../services/api';
+import Loading from './Loading';
 
-export default function CommentsListByArticle({ comments }) {
+export default function CommentsListByArticle({
+  comments,
+  setComments,
+  article_id,
+}) {
   const { loggedUser } = useContext(UserAccount);
-  useEffect(() => {}, []);
+  const [body, setBody] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [newCommentId, setNewCommentId] = useState(null);
 
-  if (!comments) {
-    return <Loading />;
+  function addNewComment(article_id, username, body) {
+    setLoading(true);
+    postCommentOnArticle(article_id, username, body)
+      .then((newComment) => {
+        setComments([...comments, newComment]);
+        setNewCommentId(newComment.comment_id);
+        setBody('');
+        setLoading(false);
+        setTimeout(() => {
+          setNewCommentId(null);
+        }, 3000);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
+
+  if (loading) return <Loading />;
 
   return (
     <>
@@ -43,10 +62,17 @@ export default function CommentsListByArticle({ comments }) {
         Recent Comments
       </Heading>
       <ul>
-        {comments.map((comment, index) => (
-          <li key={comment.comment_id}>
+        {comments.map((comment) => (
+          <li
+            key={comment.comment_id}
+            className={`transition-all duration-500 ${
+              newCommentId === comment.comment_id
+                ? 'animate-pulse bg-lime-800'
+                : ''
+            }`}
+          >
             <div className='flex items-center justify-between'>
-              <div key={comment.comment_id} className='flex gap-6 py-6'>
+              <div className='flex gap-6 py-6'>
                 <div className='space-y-1.5'>
                   <Link
                     href={`/users/${comment.author}`}
@@ -86,36 +112,48 @@ export default function CommentsListByArticle({ comments }) {
         ))}
       </ul>
 
-      {loggedUser ? (
-        <div className='mt-10'>
-          <form action='#' method='POST'>
-            <Fieldset>
-              <Heading level={3}>Share your thoughts</Heading>
-              <Text>Tell us what you think about this article!</Text>
-              <FieldGroup>
-                <Field>
-                  <Label>Your comment</Label>
-                  <Textarea name='notes' />
-                  <Description>We'd like to know your opinion.</Description>
-                </Field>
-              </FieldGroup>
-            </Fieldset>
+      <div className='mt-10'>
+        <form
+          action='#'
+          method='POST'
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (body.trim() === '') return; // Prevent submitting empty comment
+            addNewComment(article_id, loggedUser?.username, body);
+          }}
+        >
+          <Fieldset disabled={loggedUser ? false : true}>
+            <Heading level={3}>Share your thoughts</Heading>
+            <Text>Tell us what you think about this article!</Text>
+            <FieldGroup>
+              <Field>
+                <Label>Your comment</Label>
+                <Textarea
+                  name='notes'
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                />
+                <Description>We'd like to know your opinion.</Description>
+              </Field>
+            </FieldGroup>
+          </Fieldset>
+          {loggedUser ? (
             <Button
-              href='#'
+              type='submit'
               className='px-8 mt-6 w-full sm:w-auto min-w-[300px]'
             >
               Post Your Comment
             </Button>
-          </form>
-        </div>
-      ) : (
-        <Button
-          href='/profile'
-          className='px-8 mt-6 w-full sm:w-auto min-w-[300px]'
-        >
-          Sign in to leave a comment
-        </Button>
-      )}
+          ) : (
+            <Button
+              href='/profile'
+              className='px-8 mt-6 w-full sm:w-auto min-w-[300px]'
+            >
+              Sign in to leave a comment
+            </Button>
+          )}
+        </form>
+      </div>
     </>
   );
 }

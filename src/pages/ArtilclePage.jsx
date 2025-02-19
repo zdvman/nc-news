@@ -3,16 +3,17 @@ import ArticleDetailedCard from '../components/ArticleDetailedCard';
 import { useParams } from 'react-router-dom';
 import CommentsListByArticle from '../components/CommentsListByArticle';
 import Loading from '../components/Loading';
-import { fetchArticle, fetchCommentsByArticle } from '../services/api';
+import { getArticle, getCommentsByArticle } from '../services/api';
 import { useEffect, useState } from 'react';
 
 export default function ArticlePage() {
   const { article_id } = useParams();
   const [article, setArticle] = useState(null);
   const [comments, setComments] = useState(null);
+
   useEffect(() => {
-    const fetchedArticle = fetchArticle(article_id);
-    const fetchedCommentsByArticle = fetchCommentsByArticle(article_id);
+    const fetchedArticle = getArticle(article_id);
+    const fetchedCommentsByArticle = getCommentsByArticle(article_id);
     Promise.all([fetchedArticle, fetchedCommentsByArticle]).then((values) => {
       setArticle(values[0]);
       setComments(values[1]);
@@ -27,7 +28,11 @@ export default function ArticlePage() {
     <>
       <ArticleDetailedCard article={article} />
       <Divider className='mt-10' />
-      <CommentsListByArticle comments={comments} />
+      <CommentsListByArticle
+        comments={comments}
+        setComments={setComments}
+        article_id={article_id}
+      />
     </>
   );
 }
