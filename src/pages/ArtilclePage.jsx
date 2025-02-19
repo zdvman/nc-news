@@ -7,9 +7,12 @@ import { getArticle, getCommentsByArticle } from '../services/api';
 import { useEffect, useState } from 'react';
 
 export default function ArticlePage() {
-  const { article_id } = useParams();
+  const params = useParams();
   const [article, setArticle] = useState(null);
   const [comments, setComments] = useState(null);
+
+  const { article_id } = params;
+  console.log(params);
 
   useEffect(() => {
     const fetchedArticle = getArticle(article_id);

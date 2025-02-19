@@ -14,93 +14,103 @@ import { useContext, useEffect, useState } from 'react';
 import UserAccount from '../context/UserAccount';
 import { formatDate } from '../utils/utils';
 import Loading from './Loading';
+import { useParams } from 'react-router-dom';
+import { Heading } from './catalyst-ui-kit/heading';
 
 export default function ArticlesList() {
   const [articles, setArticles] = useState(null);
   const { loggedUser } = useContext(UserAccount);
+  const { topic } = useParams();
 
   useEffect(() => {
-    getArticles()
+    getArticles(topic ? { topic } : {})
       .then((fetchedArticles) => {
         setArticles(fetchedArticles);
       })
       .catch((err) => {
         console.error(err);
       });
-  }, []);
+  }, [topic]);
 
   if (!articles) {
     return <Loading />;
   }
 
   return (
-    <ul className='mt-10'>
-      {articles.map((article, index) => (
-        <li key={article.article_id}>
-          <Divider soft={index > 0} />
-          <div className='flex items-center justify-between'>
-            <div key={article.article_id} className='flex gap-6 py-6'>
-              <div className='w-32 shrink-0'>
-                <Link
-                  href={`/articles/${article.article_id}`}
-                  aria-hidden='true'
-                >
-                  <img
-                    className='aspect-3/2 rounded-lg shadow-sm'
-                    src={article.article_img_url}
-                    alt=''
-                  />
-                </Link>
-              </div>
-              <div className='space-y-1.5'>
-                <div className='text-base/6 font-semibold text-white'>
-                  <Link href={`/articles/${article.article_id}`}>
-                    {article.title}
+    <>
+      <Heading className='my-6'>
+        {topic ? `Articles on "${topic}"` : 'All Articles'}
+      </Heading>
+      <ul className='mt-10'>
+        {articles.map((article, index) => (
+          <li key={article.article_id}>
+            <Divider soft={index > 0} />
+            <div className='flex items-center justify-between'>
+              <div key={article.article_id} className='flex gap-6 py-6'>
+                <div className='w-32 shrink-0'>
+                  <Link
+                    href={`/articles/${article.topic}/${article.article_id}`}
+                    aria-hidden='true'
+                  >
+                    <img
+                      className='aspect-3/2 rounded-lg shadow-sm'
+                      src={article.article_img_url}
+                      alt=''
+                    />
                   </Link>
                 </div>
-                <Subheading>
-                  Topic:
-                  {` "${
-                    article.topic[0].toUpperCase() + article.topic.slice(1)
-                  }"`}
-                </Subheading>
-                <div className='text-xs/6 text-zinc-500'>
-                  created by {article.author} at{' '}
-                  {formatDate(article.created_at)}{' '}
-                </div>
-                <div className='text-xs/6 text-zinc-600'>
-                  comments {article.comment_count}
+                <div className='space-y-1.5'>
+                  <div className='text-base/6 font-semibold text-white'>
+                    <Link
+                      href={`/articles/${article.topic}/${article.article_id}`}
+                    >
+                      {article.title}
+                    </Link>
+                  </div>
+                  <Subheading>
+                    Topic:
+                    {` "${
+                      article.topic[0].toUpperCase() + article.topic.slice(1)
+                    }"`}
+                  </Subheading>
+                  <div className='text-xs/6 text-zinc-500'>
+                    created by {article.author} at{' '}
+                    {formatDate(article.created_at)}{' '}
+                  </div>
+                  <div className='text-xs/6 text-zinc-600'>
+                    comments {article.comment_count}
+                  </div>
                 </div>
               </div>
+              <div className='flex items-center gap-4'>
+                <Badge
+                  className='min-w-[50px] max-sm:hidden'
+                  color={`${article.votes > 0 ? 'lime' : 'zinc'}`}
+                >
+                  <StarIcon className='w-4 h-4' />
+                  {article.votes}
+                </Badge>
+                <Dropdown>
+                  <DropdownButton plain aria-label='More options'>
+                    <EllipsisVerticalIcon />
+                  </DropdownButton>
+                  <DropdownMenu anchor='bottom end'>
+                    <DropdownItem href={`/articles/${article.article_id}`}>
+                      View
+                    </DropdownItem>
+                    {loggedUser?.username === article.author && (
+                      <>
+                        {/* <DropdownItem>Edit</DropdownItem> */}
+                        {/* <DropdownItem onClick={() => {}}>Delete</DropdownItem> */}
+                      </>
+                    )}
+                  </DropdownMenu>
+                </Dropdown>
+              </div>
             </div>
-            <div className='flex items-center gap-4'>
-              <Badge
-                className='min-w-[50px] max-sm:hidden'
-                color={`${article.votes > 0 ? 'lime' : 'zinc'}`}
-              >
-                <StarIcon className='w-4 h-4' />
-                {article.votes}
-              </Badge>
-              <Dropdown>
-                <DropdownButton plain aria-label='More options'>
-                  <EllipsisVerticalIcon />
-                </DropdownButton>
-                <DropdownMenu anchor='bottom end'>
-                  <DropdownItem href={`/articles/${article.article_id}`}>
-                    View
-                  </DropdownItem>
-                  {loggedUser?.username === article.author && (
-                    <>
-                      {/* <DropdownItem>Edit</DropdownItem> */}
-                      {/* <DropdownItem onClick={() => {}}>Delete</DropdownItem> */}
-                    </>
-                  )}
-                </DropdownMenu>
-              </Dropdown>
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

@@ -8,7 +8,7 @@ const ncNewsAPI = axios.create({
 
 // Fetch all articles
 export const getArticles = (params = {}) => {
-  return ncNewsAPI.get('/articles', params).then((response) => {
+  return ncNewsAPI.get('/articles', { params }).then((response) => {
     return response.data.articles;
   });
 };
@@ -49,4 +49,11 @@ export const postCommentOnArticle = (article_id, username, body) => {
 export const deleteCommentOnArticle = (comment_id) => {
   console.log(comment_id);
   return ncNewsAPI.delete(`/comments/${comment_id}`);
+};
+
+// Fetch all topics
+export const getTopics = (params = {}) => {
+  return ncNewsAPI.get('/topics', params).then((response) => {
+    return response.data.topics;
+  });
 };
