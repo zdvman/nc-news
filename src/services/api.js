@@ -44,3 +44,9 @@ export const postCommentOnArticle = (article_id, username, body) => {
       return response.data.comment;
     });
 };
+
+// Delete comment on article by the author
+export const deleteCommentOnArticle = (comment_id) => {
+  console.log(comment_id);
+  return ncNewsAPI.delete(`/comments/${comment_id}`);
+};

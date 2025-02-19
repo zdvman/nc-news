@@ -24,7 +24,7 @@ import { Textarea } from '@/components/catalyst-ui-kit/textarea';
 import { formatDate } from '../utils/utils';
 import { Link } from 'react-router-dom';
 import { EllipsisVerticalIcon, StarIcon } from '@heroicons/react/16/solid';
-import { postCommentOnArticle } from '../services/api';
+import { deleteCommentOnArticle, postCommentOnArticle } from '../services/api';
 import Loading from './Loading';
 
 export default function CommentsListByArticle({
@@ -36,6 +36,7 @@ export default function CommentsListByArticle({
   const [body, setBody] = useState('');
   const [loading, setLoading] = useState(false);
   const [newCommentId, setNewCommentId] = useState(null);
+  const [commentIdToDelete, setCommentIdToDelete] = useState(null);
 
   function addNewComment(article_id, username, body) {
     setLoading(true);
@@ -51,7 +52,34 @@ export default function CommentsListByArticle({
       })
       .catch((error) => {
         console.error(error);
+        setLoading(false);
       });
+  }
+
+  function deleteComment(comment_id) {
+    setCommentIdToDelete(comment_id);
+    setTimeout(() => {
+      setLoading(true);
+      deleteCommentOnArticle(comment_id)
+        .then(() => {
+          setComments(
+            comments.filter(
+              (currentComment) => currentComment.comment_id !== comment_id
+            )
+          );
+          setCommentIdToDelete(null);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }, 2000);
+  }
+
+  function animationClass(comment_id) {
+    if (newCommentId === comment_id) return 'animate-pulse bg-lime-800';
+    if (commentIdToDelete === comment_id) return 'animate-pulse bg-red-800';
+    return '';
   }
 
   if (loading) return <Loading />;
@@ -65,11 +93,9 @@ export default function CommentsListByArticle({
         {comments.map((comment) => (
           <li
             key={comment.comment_id}
-            className={`transition-all duration-500 ${
-              newCommentId === comment.comment_id
-                ? 'animate-pulse bg-lime-800'
-                : ''
-            }`}
+            className={`transition-all duration-500 ${animationClass(
+              comment.comment_id
+            )}`}
           >
             <div className='flex items-center justify-between'>
               <div className='flex gap-6 py-6'>
@@ -101,7 +127,13 @@ export default function CommentsListByArticle({
                   </DropdownButton>
                   {loggedUser?.username === comment.author && (
                     <DropdownMenu anchor='bottom end'>
-                      <DropdownItem>Delete</DropdownItem>
+                      <DropdownItem
+                        onClick={() => {
+                          deleteComment(comment.comment_id);
+                        }}
+                      >
+                        Delete
+                      </DropdownItem>
                     </DropdownMenu>
                   )}
                 </Dropdown>

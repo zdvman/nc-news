@@ -91,8 +91,8 @@ export default function ArticlesList() {
                   </DropdownItem>
                   {loggedUser?.username === article.author && (
                     <>
-                      <DropdownItem>Edit</DropdownItem>
-                      <DropdownItem>Delete</DropdownItem>
+                      {/* <DropdownItem>Edit</DropdownItem> */}
+                      {/* <DropdownItem onClick={() => {}}>Delete</DropdownItem> */}
                     </>
                   )}
                 </DropdownMenu>
