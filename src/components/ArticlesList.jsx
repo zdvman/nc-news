@@ -14,23 +14,35 @@ import { useContext, useEffect, useState } from 'react';
 import UserAccount from '../context/UserAccount';
 import { formatDate } from '../utils/utils';
 import Loading from './Loading';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Heading } from './catalyst-ui-kit/heading';
 
 export default function ArticlesList() {
   const [articles, setArticles] = useState(null);
   const { loggedUser } = useContext(UserAccount);
   const { topic } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const sortByQuery = searchParams.get('sort_by');
+  const orderQuery = searchParams.get('order');
+
+  function queryParams(topic, sortByQuery, orderQuery) {
+    const params = {};
+    if (topic) params.topic = topic;
+    if (sortByQuery) params.sort_by = sortByQuery;
+    if (orderQuery) params.order = orderQuery;
+    return params;
+  }
 
   useEffect(() => {
-    getArticles(topic ? { topic } : {})
+    getArticles(queryParams(topic, sortByQuery, orderQuery))
       .then((fetchedArticles) => {
         setArticles(fetchedArticles);
       })
       .catch((err) => {
         console.error(err);
       });
-  }, [topic]);
+  }, [topic, orderQuery, sortByQuery]);
 
   if (!articles) {
     return <Loading />;
