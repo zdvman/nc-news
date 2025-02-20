@@ -95,7 +95,9 @@ export default function ArticlesList() {
                     <EllipsisVerticalIcon />
                   </DropdownButton>
                   <DropdownMenu anchor='bottom end'>
-                    <DropdownItem href={`/articles/${article.article_id}`}>
+                    <DropdownItem
+                      href={`/articles/${article.topic}/${article.article_id}`}
+                    >
                       View
                     </DropdownItem>
                     {loggedUser?.username === article.author && (
