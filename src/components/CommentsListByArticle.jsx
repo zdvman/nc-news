@@ -25,7 +25,6 @@ import { formatDate, handleErrorOkButton } from '../utils/utils';
 import { Link } from 'react-router-dom';
 import { EllipsisVerticalIcon, StarIcon } from '@heroicons/react/16/solid';
 import { deleteCommentOnArticle, postCommentOnArticle } from '../services/api';
-import Loading from './Loading';
 import AlertPopup from './AlertPopup';
 
 export default function CommentsListByArticle({
@@ -147,11 +146,11 @@ export default function CommentsListByArticle({
                 <div className='space-y-1.5'>
                   <Link
                     href={`/users/${comment?.author}`}
-                    className='text-[10px] text-gray-400 hover:text-gray-300'
+                    className='text-[12px] text-gray-400 hover:text-gray-300'
                   >
                     Created by: {comment?.author}
                   </Link>
-                  <span className='text-[9px] text-gray-500'>
+                  <span className='text-[10px] text-gray-500'>
                     {' ' + formatDate(comment?.created_at)}
                   </span>
                   <Text className='px-6 mt-2 !text-white'>{comment?.body}</Text>
@@ -169,15 +168,15 @@ export default function CommentsListByArticle({
                   <DropdownButton plain aria-label='More options'>
                     <EllipsisVerticalIcon />
                   </DropdownButton>
-                  {loggedUser?.username === comment?.author && (
-                    <DropdownMenu anchor='bottom end'>
+                  <DropdownMenu anchor='bottom end'>
+                    {loggedUser?.username === comment?.author && (
                       <DropdownItem
                         onClick={() => handleDeleteRequest(comment?.comment_id)}
                       >
                         Delete
                       </DropdownItem>
-                    </DropdownMenu>
-                  )}
+                    )}
+                  </DropdownMenu>
                 </Dropdown>
               </div>
             </div>
