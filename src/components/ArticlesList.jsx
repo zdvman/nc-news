@@ -12,16 +12,30 @@ import { getArticles } from '../services/api';
 import { Subheading } from '@/components/catalyst-ui-kit/heading';
 import { useContext, useEffect, useState } from 'react';
 import UserAccount from '../context/UserAccount';
-import { formatDate } from '../utils/utils';
+import {
+  firstLetterToUpperCase,
+  formatDate,
+  handleErrorOkButton,
+} from '../utils/utils';
 import Loading from './Loading';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Heading } from './catalyst-ui-kit/heading';
+import AlertPopup from './AlertPopup';
 
 export default function ArticlesList() {
   const [articles, setArticles] = useState(null);
-  const { loggedUser } = useContext(UserAccount);
+  const {
+    loggedUser,
+    error,
+    setError,
+    loading,
+    setLoading,
+    isErrorPopupOpen,
+    setIsErrorPopupOpen,
+    navigate,
+  } = useContext(UserAccount);
   const { topic } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const sortByQuery = searchParams.get('sort_by');
   const orderQuery = searchParams.get('order');
@@ -35,26 +49,69 @@ export default function ArticlesList() {
   }
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
+    setIsErrorPopupOpen(false);
     getArticles(queryParams(topic, sortByQuery, orderQuery))
       .then((fetchedArticles) => {
+        setLoading(false);
         setArticles(fetchedArticles);
+        if(fetchedArticles?.length === 0) {
+          setIsErrorPopupOpen(true);
+          setError(
+            'Articles on this request are not found'
+          );
+        }
       })
       .catch((err) => {
-        console.error(err);
+        console.log(err);
+        setLoading(false);
+        setError(
+          'Status: ' +
+            err.response.status +
+            ' Message: "' +
+            err.response.data.msg +
+            '"' +
+            `${
+              err.response.data.error &&
+              ' Extra error info: ' + err.response.data.error
+            }` || 'An unexpected error occurred in get articles'
+        );
+        setIsErrorPopupOpen(true);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [topic, orderQuery, sortByQuery]);
 
-  if (!articles) {
+  if (loading) {
     return <Loading />;
+  }
+
+  if (error) {
+    return (
+      <AlertPopup
+        isOpen={isErrorPopupOpen}
+        setIsOpen={setIsErrorPopupOpen}
+        title='Error'
+        description={error}
+        confirmText='OK'
+        onConfirm={() =>
+          handleErrorOkButton(setError, setIsErrorPopupOpen, navigate)
+        }
+      />
+    );
   }
 
   return (
     <>
       <Heading className='my-6'>
-        {topic ? `Articles on "${topic}"` : 'All Articles'}
+        {topic
+          ? `Articles on "${firstLetterToUpperCase(topic)}"`
+          : 'All Articles'}
       </Heading>
       <ul className='mt-10'>
-        {articles.map((article, index) => (
+        {articles?.map((article, index) => (
           <li key={article.article_id}>
             <Divider soft={index > 0} />
             <div className='flex items-center justify-between'>

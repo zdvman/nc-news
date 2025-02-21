@@ -47,7 +47,6 @@ export const postCommentOnArticle = (article_id, username, body) => {
 
 // Delete comment on article by the author
 export const deleteCommentOnArticle = (comment_id) => {
-  console.log(comment_id);
   return ncNewsAPI.delete(`/comments/${comment_id}`);
 };
 

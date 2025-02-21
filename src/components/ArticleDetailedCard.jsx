@@ -1,4 +1,3 @@
-// import { Button } from '@/components/catalyst-ui-kit/button';
 import { NavLink } from 'react-router-dom';
 import {
   ChevronLeftIcon,
@@ -7,25 +6,35 @@ import {
 } from '@heroicons/react/16/solid';
 import { Heading, Subheading } from '@/components/catalyst-ui-kit/heading';
 import { Badge } from '@/components/catalyst-ui-kit/badge';
-import { useEffect, useState } from 'react';
-import { formatDate } from '../utils/utils';
+import { useContext, useEffect, useState } from 'react';
+import { formatDate, handleErrorOkButton } from '../utils/utils';
 import { Text } from '@/components/catalyst-ui-kit/text';
 import { patchVotesOnArticle } from '../services/api';
+import AlertPopup from './AlertPopup';
+import UserAccount from '../context/UserAccount';
+import Loading from './Loading';
 
 export default function ArticleDetailedCard({ article }) {
+  const {
+    error,
+    setError,
+    loading,
+    isErrorPopupOpen,
+    setIsErrorPopupOpen,
+    navigate,
+  } = useContext(UserAccount);
   const [voteStatus, setVoteStatus] = useState(() => {
     return localStorage.getItem(`voteStatus-${article.article_id}`) || null;
-  }); // Keep track of user session with likes and dislikes
+  });
   const [votes, setVotes] = useState(article?.votes);
   const [pendingVote, setPendingVote] = useState(null);
 
-  // Function to handle voting action
   const handleVote = (type) => {
     if (voteStatus === type) {
       setVotes((prev) => prev + (type === 'like' ? -1 : 1)); // Undo vote
       setVoteStatus(null);
       setPendingVote(type === 'like' ? -1 : 1);
-      localStorage.removeItem(`voteStatus-${article.article_id}`); // Clear stored vote
+      localStorage.removeItem(`voteStatus-${article?.article_id}`); // Clear stored vote
     } else {
       setVotes(
         (prev) =>
@@ -36,26 +45,55 @@ export default function ArticleDetailedCard({ article }) {
       setPendingVote(
         voteStatus ? (type === 'like' ? 2 : -2) : type === 'like' ? 1 : -1
       );
-      localStorage.setItem(`voteStatus-${article.article_id}`, type); // Store vote selection
+      localStorage.setItem(`voteStatus-${article?.article_id}`, type); // Store vote selection
     }
   };
 
-  // API Call using useEffect to sync state with backend
   useEffect(() => {
     if (pendingVote !== null) {
-      patchVotesOnArticle(article.article_id, pendingVote)
+      setError(null);
+      setIsErrorPopupOpen(false);
+      patchVotesOnArticle(article?.article_id, pendingVote)
         .then((updatedArticle) => {
-          setVotes(updatedArticle.votes); // Sync with backend
+          setVotes(updatedArticle.votes);
         })
-        .catch((error) => {
-          console.error('Error updating votes:', error);
-          setVotes((prev) => prev - pendingVote); // Revert UI if API fails
+        .catch((err) => {
+          setVotes((prev) => prev - pendingVote);
+          setError(
+            'Status: ' +
+              err.response.status +
+              ' Message: "' +
+              err.response.data.msg +
+              '"' +
+              `${
+                err.response.data.error &&
+                ' Extra error info: ' + err.response.data.error
+              }` || 'An unexpected error occurred in vote update'
+          );
+          setIsErrorPopupOpen(true);
         })
         .finally(() => {
-          setPendingVote(null); // Reset pending state
+          setPendingVote(null);
         });
     }
-  }, [pendingVote, article.article_id]);
+  }, [pendingVote, article?.article_id]);
+
+  if (error) {
+    return (
+      <AlertPopup
+        isOpen={isErrorPopupOpen}
+        setIsOpen={setIsErrorPopupOpen}
+        title='Error'
+        description={error}
+        confirmText='OK'
+        onConfirm={() =>
+          handleErrorOkButton(setError, setIsErrorPopupOpen, navigate)
+        }
+      />
+    );
+  }
+
+  if (loading) return <Loading />;
 
   return (
     <>
@@ -86,7 +124,7 @@ export default function ArticleDetailedCard({ article }) {
             <Subheading className='mt-2'>
               Topic:{' '}
               {` "${
-                article?.topic[0].toUpperCase() + article?.topic.slice(1)
+                article?.topic[0].toUpperCase() + article?.topic?.slice(1)
               }"`}
             </Subheading>
             <div className='mt-2 text-sm/6 text-zinc-500'>
@@ -119,7 +157,6 @@ export default function ArticleDetailedCard({ article }) {
             </Badge>
           </div>
         </div>
-
         <Text className='!text-white'>{article?.body}</Text>
       </div>
     </>
