@@ -1,27 +1,82 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { getTopics } from '../services/api';
 import Loading from '../components/Loading';
 import { NavLink } from 'react-router-dom';
 import { ChevronLeftIcon } from '@heroicons/react/16/solid';
 import { Heading } from '../components/catalyst-ui-kit/heading';
 import { Text } from '../components/catalyst-ui-kit/text';
+import { firstLetterToUpperCase, handleErrorOkButton } from '../utils/utils';
+import UserAccount from '../context/UserAccount';
+import AlertPopup from '../components/AlertPopup';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
 export default function TopicsPage() {
+  const {
+    error,
+    setError,
+    loading,
+    setLoading,
+    isErrorPopupOpen,
+    setIsErrorPopupOpen,
+    navigate,
+  } = useContext(UserAccount);
   const [topics, setTopics] = useState(null);
 
   useEffect(() => {
-    getTopics().then((topics) => {
-      setTopics(topics);
-    });
+    setLoading(true);
+    setError(null);
+    setIsErrorPopupOpen(false);
+    getTopics()
+      .then((topicsList) => {
+        setLoading(false);
+        setTopics(topicsList);
+        if (topicsList.length === 0) {
+          setIsErrorPopupOpen(true);
+          setError('Topics are not found');
+        }
+      })
+      .catch((err) => {
+        setLoading(false);
+        setError(
+          'Status: ' +
+            err.response.status +
+            ' Message: "' +
+            err.response.data.msg +
+            '"' +
+            `${
+              err.response.data.error &&
+              ' Extra error info: ' + err.response.data.error
+            }` || 'An unexpected error occurred in get topics'
+        );
+        setIsErrorPopupOpen(true);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  if (!topics) {
+  if (error) {
+    return (
+      <AlertPopup
+        isOpen={isErrorPopupOpen}
+        setIsOpen={setIsErrorPopupOpen}
+        title='Error'
+        description={error}
+        confirmText='OK'
+        onConfirm={() =>
+          handleErrorOkButton(setError, setIsErrorPopupOpen, navigate)
+        }
+      />
+    );
+  }
+
+  if (loading) {
     return <Loading />;
   }
+
   return (
     <>
       <div className='max-lg:hidden'>
@@ -35,7 +90,7 @@ export default function TopicsPage() {
       </div>
       <Heading className='my-6'>Topics</Heading>
       <div className='grid sm:grid-cols-2 gap-2'>
-        {topics.map((topic, topicIdx) => (
+        {topics?.map((topic, topicIdx) => (
           <div
             key={topic?.slug + topic?.description}
             className={classNames(
@@ -43,8 +98,8 @@ export default function TopicsPage() {
                 ? 'rounded-tl-lg rounded-tr-lg sm:rounded-tr-none'
                 : '',
               topicIdx === 1 ? 'sm:rounded-tr-lg' : '',
-              topicIdx === topics.length - 2 ? 'sm:rounded-bl-lg' : '',
-              topicIdx === topics.length - 1
+              topicIdx === topics?.length - 2 ? 'sm:rounded-bl-lg' : '',
+              topicIdx === topics?.length - 1
                 ? 'rounded-br-lg rounded-bl-lg sm:rounded-bl-none'
                 : '',
               'group relative bg-gray-900 dark:bg-gray-800 p-6 border border-gray-700 rounded-lg transition-all duration-300'
@@ -59,13 +114,11 @@ export default function TopicsPage() {
                   to={`/articles/${topic?.slug}`}
                   className='focus:outline-none hover:text-indigo-400 transition-colors duration-200'
                 >
-                  {/* Extend touch target to entire panel */}
                   <span aria-hidden='true' className='absolute inset-0' />
-                  Topic:{' '}
-                  {`"${topic?.slug[0].toUpperCase() + topic?.slug.slice(1)}"`}
+                  Topic: {`"${firstLetterToUpperCase(topic?.slug)}"`}
                 </NavLink>
               </Heading>
-              <Text className='mt-2'>{topic.description}</Text>
+              <Text className='mt-2'>{topic?.description}</Text>
             </div>
             <span
               aria-hidden='true'

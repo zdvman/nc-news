@@ -21,68 +21,113 @@ import {
 } from '@/components/catalyst-ui-kit/fieldset';
 import { Text } from '@/components/catalyst-ui-kit/text';
 import { Textarea } from '@/components/catalyst-ui-kit/textarea';
-import { formatDate } from '../utils/utils';
+import { formatDate, handleErrorOkButton } from '../utils/utils';
 import { Link } from 'react-router-dom';
 import { EllipsisVerticalIcon, StarIcon } from '@heroicons/react/16/solid';
 import { deleteCommentOnArticle, postCommentOnArticle } from '../services/api';
 import Loading from './Loading';
+import AlertPopup from './AlertPopup';
 
 export default function CommentsListByArticle({
   comments,
   setComments,
   article_id,
 }) {
-  const { loggedUser } = useContext(UserAccount);
+  const {
+    loggedUser,
+    error,
+    setError,
+    isErrorPopupOpen,
+    setIsErrorPopupOpen,
+    navigate,
+  } = useContext(UserAccount);
   const [body, setBody] = useState('');
-  const [loading, setLoading] = useState(false);
   const [newCommentId, setNewCommentId] = useState(null);
   const [commentIdToDelete, setCommentIdToDelete] = useState(null);
+  const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
 
   function addNewComment(article_id, username, body) {
-    setLoading(true);
+    setError(null);
+    setIsErrorPopupOpen(false);
     postCommentOnArticle(article_id, username, body)
       .then((newComment) => {
         setComments([...comments, newComment]);
-        setNewCommentId(newComment.comment_id);
         setBody('');
-        setLoading(false);
+        setNewCommentId(newComment?.comment_id);
         setTimeout(() => {
           setNewCommentId(null);
         }, 3000);
       })
-      .catch((error) => {
-        console.error(error);
-        setLoading(false);
+      .catch((err) => {
+        setError(
+          'Status: ' +
+            err.response.status +
+            ' Message: "' +
+            err.response.data.msg +
+            '"' +
+            `${
+              err.response.data.error &&
+              ' Extra error info: ' + err.response.data.error
+            }` || 'An unexpected error occurred in add new comment'
+        );
+        setIsErrorPopupOpen(true);
       });
   }
 
-  function deleteComment(comment_id) {
-    setCommentIdToDelete(comment_id);
-    setTimeout(() => {
-      setLoading(true);
-      deleteCommentOnArticle(comment_id)
-        .then(() => {
-          setComments(
-            comments.filter(
-              (currentComment) => currentComment.comment_id !== comment_id
-            )
-          );
-          setCommentIdToDelete(null);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    }, 2000);
-  }
-
   function animationClass(comment_id) {
-    if (newCommentId === comment_id) return 'animate-pulse bg-lime-800';
-    if (commentIdToDelete === comment_id) return 'animate-pulse bg-red-800';
+    if (newCommentId === comment_id) return 'animate-pulse bg-lime-900';
+    if (commentIdToDelete === comment_id) return 'animate-pulse bg-red-900';
     return '';
   }
 
-  if (loading) return <Loading />;
+  function handleDeleteRequest(comment_id) {
+    setCommentIdToDelete(comment_id);
+    setIsDeletePopupOpen(true);
+  }
+
+  function handleDeleteConfirmation() {
+    setError(null);
+    setIsErrorPopupOpen(false);
+    setIsDeletePopupOpen(false);
+    if (commentIdToDelete) {
+      deleteCommentOnArticle(commentIdToDelete)
+        .then(() => {
+          setComments(
+            comments.filter((c) => c.comment_id !== commentIdToDelete)
+          );
+          setCommentIdToDelete(null);
+        })
+        .catch((err) => {
+          setError(
+            'Status: ' +
+              err.response.status +
+              ' Message: "' +
+              err.response.data.msg +
+              '"' +
+              `${
+                err.response.data.error &&
+                ' Extra error info: ' + err.response.data.error
+              }` || 'An unexpected error occurred in delete comment'
+          );
+          setIsErrorPopupOpen(true);
+        });
+    }
+  }
+
+  if (error) {
+    return (
+      <AlertPopup
+        isOpen={isErrorPopupOpen}
+        setIsOpen={setIsErrorPopupOpen}
+        title='Error'
+        description={error}
+        confirmText='OK'
+        onConfirm={() =>
+          handleErrorOkButton(setError, setIsErrorPopupOpen, navigate)
+        }
+      />
+    );
+  }
 
   return (
     <>
@@ -90,47 +135,44 @@ export default function CommentsListByArticle({
         Recent Comments
       </Heading>
       <ul>
-        {comments.map((comment) => (
+        {comments?.map((comment) => (
           <li
-            key={comment.comment_id}
+            key={comment?.comment_id}
             className={`transition-all duration-500 ${animationClass(
-              comment.comment_id
+              comment?.comment_id
             )}`}
           >
             <div className='flex items-center justify-between'>
               <div className='flex gap-6 py-6'>
                 <div className='space-y-1.5'>
                   <Link
-                    href={`/users/${comment.author}`}
+                    href={`/users/${comment?.author}`}
                     className='text-[10px] text-gray-400 hover:text-gray-300'
                   >
-                    Created by: {comment.author}
+                    Created by: {comment?.author}
                   </Link>
                   <span className='text-[9px] text-gray-500'>
-                    {' ' + formatDate(comment.created_at)}
+                    {' ' + formatDate(comment?.created_at)}
                   </span>
-                  <Text className='px-6 mt-2 !text-white'>{comment.body}</Text>
+                  <Text className='px-6 mt-2 !text-white'>{comment?.body}</Text>
                 </div>
               </div>
-
               <div className='flex items-center gap-4'>
                 <Badge
                   className='min-w-[50px] max-sm:hidden'
-                  color={`${comment.votes > 0 ? 'lime' : 'zinc'}`}
+                  color={`${comment?.votes > 0 ? 'lime' : 'zinc'}`}
                 >
                   <StarIcon className='w-4 h-4' />
-                  {comment.votes}
+                  {comment?.votes}
                 </Badge>
                 <Dropdown>
                   <DropdownButton plain aria-label='More options'>
                     <EllipsisVerticalIcon />
                   </DropdownButton>
-                  {loggedUser?.username === comment.author && (
+                  {loggedUser?.username === comment?.author && (
                     <DropdownMenu anchor='bottom end'>
                       <DropdownItem
-                        onClick={() => {
-                          deleteComment(comment.comment_id);
-                        }}
+                        onClick={() => handleDeleteRequest(comment?.comment_id)}
                       >
                         Delete
                       </DropdownItem>
@@ -144,13 +186,25 @@ export default function CommentsListByArticle({
         ))}
       </ul>
 
+      {/* Delete Confirmation Popup */}
+      <AlertPopup
+        isOpen={isDeletePopupOpen}
+        setIsOpen={setIsDeletePopupOpen}
+        onConfirm={handleDeleteConfirmation}
+        title='Do you really want to delete this comment?'
+        description='This action cannot be undone.'
+        setCommentIdToDelete={setCommentIdToDelete}
+        confirmText='Delete'
+        cancelText='Cancel'
+      />
+
       <div className='mt-10'>
         <form
           action='#'
           method='POST'
           onSubmit={(e) => {
             e.preventDefault();
-            if (body.trim() === '') return; // Prevent submitting empty comment
+            if (body.trim() === '') return;
             addNewComment(article_id, loggedUser?.username, body);
           }}
         >
